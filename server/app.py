@@ -16,6 +16,19 @@ db.init_app(app)
 
 api = Api(app)
 
+class Home(Resource):
+    def get(self):
+        response_dict = {
+            "index": "Planty universe unlocked",
+        }
+
+        response = make_response(jsonify(response_dict), 200)
+
+        return response
+    
+api.add_resource(Home, '/')
+
+
 
 class Plants(Resource):
 
@@ -46,9 +59,32 @@ class PlantByID(Resource):
     def get(self, id):
         plant = Plant.query.filter_by(id=id).first().to_dict()
         return make_response(jsonify(plant), 200)
+    
+    def patch(self, id):
+        plant = Plant.query.filter_by(id=id).first()
+        for attr in request.form:
+            setattr(plant, attr, request.form[attr])
+
+        db.session.add(plant)
+        db.session.commit()
+
+        return make_response(jsonify(plant), 200)
+    
+    def delete(self, id):
+        plant = Plant.query.filtr_by(id=id).first()
+
+        db.session.delete(plant)
+        db.session.commit()
+
+        response_dict = {"message": "plant deleted successfully"}
+
+        return make_response(jsonify(response_dict), 200)
+
+
 
 
 api.add_resource(PlantByID, '/plants/<int:id>')
+
 
 
 if __name__ == '__main__':
